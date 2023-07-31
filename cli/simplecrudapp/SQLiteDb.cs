@@ -5,7 +5,7 @@ namespace simplecrudapp
 {
     public class SQLiteDb
     {
-        private static string _folder = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+        private static string _folder = Environment.CurrentDirectory;
         private static string _path = Path.Combine(_folder, "simple-crud.db");
 
         private readonly object _lock = new object();
@@ -20,6 +20,20 @@ namespace simplecrudapp
                 using var connection = OpenConnection();
 
                 connection.CreateTable<EmployeeData>();
+                connection.Close();
+            }
+        }
+
+        /// <summary>
+        /// Drop all SQLite tables on the program, should be invoked on the initialization.
+        /// </summary>
+        public void DropAllTable()
+        {
+            lock (_lock)
+            {
+                using var connection = OpenConnection();
+
+                connection.DropTable<EmployeeData>();
                 connection.Close();
             }
         }

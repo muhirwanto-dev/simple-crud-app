@@ -9,7 +9,7 @@ try
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"{nameof(simplecrudapp.SimpleCrudApp)} throws an exception: {ex.Message}");
+    Console.WriteLine("{0} throws an exception: {1}", nameof(simplecrudapp.SimpleCrudApp), ex.Message);
 }
 finally
 {

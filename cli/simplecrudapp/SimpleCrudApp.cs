@@ -5,15 +5,6 @@ namespace simplecrudapp
 {
     public class SimpleCrudApp
     {
-        public const string CmdKeyC = "c";
-        public const string CmdKeyR = "r";
-        public const string CmdKeyU = "u";
-        public const string CmdKeyD = "d";
-        public const string CmdKeyCreate = "create";
-        public const string CmdKeyRead = "read";
-        public const string CmdKeyUpdate = "update";
-        public const string CmdKeyDelete = "delete";
-
         /// <summary>
         /// Command line arguments.
         /// </summary>
@@ -48,32 +39,86 @@ namespace simplecrudapp
 
         public void Run()
         {
-            IConfigurationRoot config = new ConfigurationBuilder().AddCommandLine(_args).Build();
+            var sqliteDb = TinyIoCContainer.Current.Resolve<SQLiteDb>();
 
-            ValidateArgs(config);
-
-            switch (_command)
+            if (_args.Contains(CmdKey.ResetDatabase))
             {
-                case ECommand.Create:
+                try
+                {
+                    sqliteDb.DropAllTable();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Failed to drop SQLite tables due to: {0}", ex.Message);
+
+                    // Keep application running even we failed to drop all tables.
+                }
+            }
+
+            try
+            {
+                sqliteDb.CreateAllTable();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Create SQLite tables has exception: {0}", ex.Message);
+
+                // Exit the application if database can't be created.
+                return;
+            }
+
+            while (true)
+            {
+                string? input = Console.ReadLine();
+
+                if (string.IsNullOrEmpty(input))
+                {
+                    continue;
+                }
+
+                string[] inputs = input.Split(' ');
+
+                if (inputs.Contains(CmdKey.Exit))
                 {
                     break;
                 }
-                case ECommand.Read:
+
+                IConfigurationRoot cmd = new ConfigurationBuilder().AddCommandLine(inputs).Build();
+
+                try
                 {
-                    break;
+                    ValidateCrud(cmd);
                 }
-                case ECommand.Update:
+                catch (Exception ex)
                 {
-                    break;
+                    Console.WriteLine(ex.Message);
+
+                    continue;
                 }
-                case ECommand.Delete:
+
+                switch (_command)
                 {
-                    break;
+                    case ECommand.Create:
+                    {
+                        break;
+                    }
+                    case ECommand.Read:
+                    {
+                        break;
+                    }
+                    case ECommand.Update:
+                    {
+                        break;
+                    }
+                    case ECommand.Delete:
+                    {
+                        break;
+                    }
                 }
             }
         }
 
-        private void ValidateArgs(IConfigurationRoot config)
+        private void ValidateCrud(IConfigurationRoot config)
         {
             if (config == null)
             {
@@ -82,25 +127,25 @@ namespace simplecrudapp
 
             _command = ECommand.Unknown;
 
-            var c = config.GetSection(CmdKeyC) != null || config.GetSection(CmdKeyCreate) != null;
+            var c = config[CmdKey.C] != null || config[CmdKey.Create] != null;
             if (c)
             {
                 _command = ECommand.Create;
             }
 
-            var r = config.GetSection(CmdKeyR) != null || config.GetSection(CmdKeyRead) != null;
+            var r = config[CmdKey.R] != null || config[CmdKey.Read] != null;
             if (r)
             {
                 _command = ECommand.Read;
             }
 
-            var u = config.GetSection(CmdKeyU) != null || config.GetSection(CmdKeyUpdate) != null;
+            var u = config[CmdKey.U] != null || config[CmdKey.Update] != null;
             if (u)
             {
                 _command = ECommand.Update;
             }
 
-            var d = config.GetSection(CmdKeyD) != null || config.GetSection(CmdKeyDelete) != null;
+            var d = config[CmdKey.D] != null || config[CmdKey.Delete] != null;
             if (d)
             {
                 _command = ECommand.Delete;
@@ -108,7 +153,7 @@ namespace simplecrudapp
 
             if (_command == ECommand.Unknown)
             {
-                throw new ArgumentException("No valid argument found!");
+                throw new ArgumentException("No valid CRUD argument found!");
             }
         }
     }

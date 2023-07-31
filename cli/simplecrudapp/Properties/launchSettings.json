@@ -1,8 +1,7 @@
 {
   "profiles": {
     "simplecrudapp": {
-      "commandName": "Project",
-      "commandLineArgs": "-c"
+      "commandName": "Project"
     }
   }
 }
