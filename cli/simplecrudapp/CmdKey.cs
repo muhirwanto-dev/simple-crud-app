@@ -8,10 +8,13 @@
         public const string D = "-d";
         public const string Exit = "-exit";
         public const string ResetDatabase = "-dbreset";
+        public const string Create = "-create";
+        public const string Read = "-read";
+        public const string Update = "-update";
+        public const string Delete = "-delete";
 
-        public const string Create = "create";
-        public const string Read = "read";
-        public const string Update = "update";
-        public const string Delete = "delete";
+        public const string Id = "id";
+        public const string Name = "name";
+        public const string Birth = "birth";
     }
 }

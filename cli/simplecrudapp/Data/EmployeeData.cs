@@ -12,7 +12,7 @@ namespace simplecrudapp.Data
         [PrimaryKey]
         public uint Id { get; set; }
 
-        [NotNull]
+        [NotNull, Unique]
         public string FullName { get; set; }
 
         [NotNull]
