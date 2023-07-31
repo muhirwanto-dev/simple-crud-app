@@ -10,7 +10,7 @@ namespace simplecrudapp.Data
         public const string TableName = "Employee";
 
         [PrimaryKey]
-        public uint Id { get; set; }
+        public uint EmployeeId { get; set; }
 
         [NotNull, Unique]
         public string FullName { get; set; }

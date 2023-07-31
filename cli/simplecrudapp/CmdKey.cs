@@ -13,8 +13,13 @@
         public const string Update = "-update";
         public const string Delete = "-delete";
 
+        /// <summary>
+        /// Use argument with two `-`.
+        /// e.g. --id, --name, --arg
+        /// </summary>
         public const string Id = "id";
         public const string Name = "name";
         public const string Birth = "birth";
+        public const string RowCount = "rowcount";
     }
 }

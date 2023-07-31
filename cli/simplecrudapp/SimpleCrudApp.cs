@@ -120,20 +120,66 @@ namespace simplecrudapp
                         {
                             sqliteDb.Insert(new EmployeeData
                             {
-                                Id = id,
+                                EmployeeId = id,
                                 FullName = cmd[CmdKey.Name],
                                 BirthDate = cmd[CmdKey.Birth],
                             });
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Failed to create data with id: {0}, msg: {1}", id, ex.Message);
+                            Console.WriteLine("SQLite failed to create data with id: {0}, msg: {1}", id, ex.Message);
                         }
 
                         break;
                     }
                     case ECommand.Read:
                     {
+                        bool all = !inputs.Contains($"--{CmdKey.Id}");
+                        if (!all)
+                        {
+                            if (!uint.TryParse(cmd[CmdKey.Id], out uint id))
+                            {
+                                Console.WriteLine("Failed to parse id: {0}", cmd[CmdKey.Id]);
+
+                                continue;
+                            }
+
+                            EmployeeData? employee = null;
+
+                            try
+                            {
+                                employee = sqliteDb.GetRow<EmployeeData>(row => row.EmployeeId == id);
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine("SQLite failed to update data with id: {0}, msg: {1}", id, ex.Message);
+                            }
+
+                            if (employee != null)
+                            {
+                                PrintTable(new List<EmployeeData>{ employee }, maxRows: 1);
+
+                                continue;
+                            }
+
+                            Console.WriteLine("Selected id ({0}) not found, show all data instead!", id);
+                        }
+
+                        var employees = sqliteDb.GetRows<EmployeeData>();
+                        if (employees == null)
+                        {
+                            throw new NullReferenceException("Oops, something went wrong in the database, contact the developer!");
+                        }
+
+                        if (int.TryParse(cmd[CmdKey.RowCount], out int count))
+                        {
+                            PrintTable(employees.ToList(), maxRows: count);
+                        }
+                        else
+                        {
+                            PrintTable(employees.ToList());
+                        }
+
                         break;
                     }
                     case ECommand.Update:
@@ -148,7 +194,7 @@ namespace simplecrudapp
                         string? name = cmd[CmdKey.Name];
                         string? birth = cmd[CmdKey.Birth];
 
-                        var oldData = sqliteDb.GetRow<EmployeeData>(row => row.Id == id);
+                        var oldData = sqliteDb.GetRow<EmployeeData>(row => row.EmployeeId == id);
                         if (oldData != null)
                         {
                             oldData.FullName = name;
@@ -160,7 +206,7 @@ namespace simplecrudapp
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Failed to update data with id: {0}, msg: {1}", id, ex.Message);
+                                Console.WriteLine("SQLite failed to update data with id: {0}, msg: {1}", id, ex.Message);
                             }
                         }
                         else
@@ -171,14 +217,14 @@ namespace simplecrudapp
                             {
                                 sqliteDb.Insert(new EmployeeData
                                 {
-                                    Id = id,
+                                    EmployeeId = id,
                                     FullName = name,
                                     BirthDate = birth,
                                 });
                             }
                             catch (Exception ex)
                             {
-                                Console.WriteLine("Failed to create data with id: {0}, msg: {1}", id, ex.Message);
+                                Console.WriteLine("SQLite failed to create data with id: {0}, msg: {1}", id, ex.Message);
                             }
                         }
 
@@ -197,12 +243,12 @@ namespace simplecrudapp
                         {
                             sqliteDb.Delete(new EmployeeData
                             {
-                                Id = id,
+                                EmployeeId = id,
                             });
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine("Failed to delete data with id: {0}, msg: {1}", id, ex.Message);
+                            Console.WriteLine("SQLite failed to delete data with id: {0}, msg: {1}", id, ex.Message);
                         }
 
                         break;
@@ -248,6 +294,99 @@ namespace simplecrudapp
             {
                 throw new ArgumentException("No valid CRUD argument found!");
             }
+        }
+
+        private void PrintTable(List<EmployeeData> data, int maxRows = -1)
+        {
+            // Verify allowed maximum row value.
+            if (maxRows > data.Count)
+            {
+                maxRows = data.Count;
+            }
+
+            // Setup config (hard coded).
+            int[] columnWidth = { 10, 20, 9};
+
+            Action newLine = () =>
+            {
+                Console.WriteLine();
+            };
+
+            // Print entire row with specifi character (fill):
+            // |-----------------...|
+            Action<char, bool> printOneRow = (fill, midBorder) =>
+            {
+                Console.Write("|");
+
+                foreach (var cwidth in columnWidth)
+                {
+                    for (int i = 0; i < cwidth; i++)
+                    {
+                        Console.Write(fill);
+                    }
+
+                    if (cwidth != columnWidth.Last())
+                    {
+                        Console.Write(midBorder ? '|' : fill);
+                    }
+                }
+
+                Console.Write("|");
+            };
+
+            // Print column with specific character width.
+            Action<string, int> printColumn = (value, width) =>
+            {
+                while (value.Length < width)
+                {
+                    value += ' ';
+                }
+
+                Console.Write(value);
+            };
+
+            // Print header
+            newLine();
+            printOneRow('-', false);
+            newLine();
+            Console.Write('|');
+            printColumn(nameof(EmployeeData.EmployeeId), columnWidth[0]);
+            Console.Write('|');
+            printColumn(nameof(EmployeeData.FullName), columnWidth[1]);
+            Console.Write('|');
+            printColumn(nameof(EmployeeData.BirthDate), columnWidth[2]);
+            Console.Write('|');
+            newLine();
+            printOneRow('-', false);
+
+            if (maxRows > 0)
+            {
+                data.RemoveRange(maxRows, data.Count - maxRows);
+            }
+
+            if (data.Any())
+            {
+                foreach (var row in data)
+                {
+                    newLine();
+                    Console.Write('|');
+                    printColumn(row.EmployeeId.ToString(), columnWidth[0]);
+                    Console.Write('|');
+                    printColumn(row.FullName, columnWidth[1]);
+                    Console.Write('|');
+                    printColumn(row.BirthDate, columnWidth[2]);
+                    Console.Write('|');
+                }
+            }
+            else
+            {
+                newLine();
+                printOneRow(' ', true);
+            }
+
+            newLine();
+            printOneRow('-', false);
+            newLine();
         }
     }
 }
