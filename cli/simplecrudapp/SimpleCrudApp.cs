@@ -38,6 +38,10 @@ namespace simplecrudapp
             container.Unregister<SQLiteDb>();
         }
 
+        /// <summary>
+        /// Run the cli application, use -exit to ended the program.
+        /// </summary>
+        /// <exception cref="NullReferenceException"></exception>
         public void Run()
         {
             var sqliteDb = TinyIoCContainer.Current.Resolve<SQLiteDb>();
@@ -79,11 +83,13 @@ namespace simplecrudapp
 
                 string[] inputs = input.Split(' ');
 
+                // Exit the program with `-exit`
                 if (inputs.Contains(CmdKey.Exit))
                 {
                     break;
                 }
 
+                // Clear the input using `cls`
                 if (input.Contains("cls"))
                 {
                     Console.Clear();
@@ -257,6 +263,12 @@ namespace simplecrudapp
             }
         }
 
+        /// <summary>
+        /// Validate CRUD command, throw an exception if there's no valid command.
+        /// </summary>
+        /// <param name="args">Arguments passed inside the main loop</param>
+        /// <exception cref="ArgumentNullException">Exception occured if argument is null</exception>
+        /// <exception cref="ArgumentException">Exception occured if no valid CRUD</exception>
         private void ValidateCrud(string[] args)
         {
             if (args == null)
@@ -296,6 +308,11 @@ namespace simplecrudapp
             }
         }
 
+        /// <summary>
+        /// Print data on the db table.
+        /// </summary>
+        /// <param name="data">Selected data to be printed</param>
+        /// <param name="maxRows">Maximum data allowed to print</param>
         private void PrintTable(List<EmployeeData> data, int maxRows = -1)
         {
             // Verify allowed maximum row value.

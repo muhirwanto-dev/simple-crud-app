@@ -1,5 +1,8 @@
 ﻿namespace simplecrudapp
 {
+    /// <summary>
+    /// Constant key of the allowed command in the application.
+    /// </summary>
     public static class CmdKey
     {
         public const string C = "-c";

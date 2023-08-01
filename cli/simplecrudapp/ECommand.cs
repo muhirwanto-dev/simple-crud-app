@@ -1,5 +1,8 @@
 ﻿namespace simplecrudapp
 {
+    /// <summary>
+    /// Enum for CRUD command.
+    /// </summary>
     public enum ECommand
     {
         Unknown = -1,
